@@ -66,9 +66,9 @@ var _ = Describe("Controller", func() {
 				Name:      "test-configmap",
 				Namespace: testNamespace,
 				Annotations: map[string]string{
-					controller.HRAnnotation:   "test-helm-release",
-					controller.NSAnnotation:   fluxNamespace,
-					controller.HashAnnotation: "old-hash",
+					controller.HRNameAnnotation: "test-helm-release",
+					controller.HRNSAnnotation:   fluxNamespace,
+					controller.HashAnnotation:   "old-hash",
 				},
 			},
 			Data: map[string]string{
@@ -83,9 +83,9 @@ var _ = Describe("Controller", func() {
 				Name:      "test-secret",
 				Namespace: testNamespace,
 				Annotations: map[string]string{
-					controller.HRAnnotation:   "test-helm-release",
-					controller.NSAnnotation:   fluxNamespace,
-					controller.HashAnnotation: "old-hash",
+					controller.HRNameAnnotation: "test-helm-release",
+					controller.HRNSAnnotation:   fluxNamespace,
+					controller.HashAnnotation:   "old-hash",
 				},
 			},
 			Data: map[string][]byte{
@@ -127,7 +127,7 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should use default namespace when namespace annotation is missing", func() {
-			testConfigMap.Annotations[controller.NSAnnotation] = ""
+			testConfigMap.Annotations[controller.HRNSAnnotation] = ""
 
 			hrName, hrNamespace, digest := reconciler.ExtractFromAnnotations(testConfigMap)
 
@@ -281,7 +281,7 @@ var _ = Describe("Controller", func() {
 
 			It("should skip reconciliation when HelmRelease annotation is missing", func() {
 				// Удаляем аннотацию HelmRelease
-				delete(testConfigMap.Annotations, controller.HRAnnotation)
+				delete(testConfigMap.Annotations, controller.HRNameAnnotation)
 				Expect(fakeClient.Update(ctx, testConfigMap)).To(Succeed())
 
 				req := ctrl.Request{

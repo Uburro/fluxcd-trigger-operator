@@ -63,6 +63,7 @@ type Config struct {
 	enableLeaderElection                             bool
 	secureMetrics                                    bool
 	enableHTTP2                                      bool
+	enableHRAutodiscovery                            bool
 
 	tlsOpts []func(*tls.Config)
 }
@@ -139,6 +140,11 @@ func main() {
 		"The name of the metrics server key file.")
 	flag.BoolVar(&config.enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.BoolVar(&config.enableHRAutodiscovery, "enable-hr-autodiscovery", false,
+		"If set, the HelmRelease controller will automatically discover and reconcile HelmRelease resources "+
+			"that reference ConfigMaps or Secrets via the 'valuesFrom' field. "+
+			"Disabling this will prevent the operator from automatically managing HelmRelease resources "+
+			"that use the 'valuesFrom' field, but it will still manage HelmRelease resources that use the 'values' field.")
 	flag.StringVar(&config.logFormat, "log-format", "plain", "Log format: plain or json")
 	flag.StringVar(&config.logLevel, "log-level", "info", "Log level: debug, info, warn, error, dpanic, panic, fatal")
 	flag.Parse()
@@ -301,6 +307,18 @@ func main() {
 	).SetupWithManager(mgr, config.MaxConcurrency, config.CacheSyncTimeout); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", controller.ConfigMapReconcilerName)
 		os.Exit(1)
+	}
+
+	if config.enableHRAutodiscovery {
+		if err = controller.NewHRAutodicoverReconciler(
+			mgr.GetClient(),
+			mgr.GetScheme(),
+		).SetupWithManager(mgr, config.MaxConcurrency, config.CacheSyncTimeout); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", controller.HRAutodicoverReconcilerName)
+			os.Exit(1)
+		}
+	} else {
+		setupLog.Info("HRAutodiscovery is disabled, skipping controller setup")
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

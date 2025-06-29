@@ -18,14 +18,30 @@ The operator watches for ConfigMaps labeled with `github.com/uburro/fluxcd-trigg
 2. **Extracts HelmRelease References**: Uses annotations to identify the target HelmRelease
 3. **Compares Digests**: Checks if the HelmRelease digest has changed since last reconciliation
 4. **Triggers Reconciliation**: Patches the HelmRelease with force reconciliation annotations when changes are detected
+5. **Autodiscovery**: Dynamically identifies HelmReleases with matching labels and annotations to include them in the reconciliation process
 
 ## Features
 
 - **Automatic Triggering**: No manual intervention required for configuration-driven deployments
+- **Autodiscovery**: Dynamically detects and includes HelmReleases based on labels and annotations
 - **Digest-based Change Detection**: Prevents unnecessary reconciliations by comparing digests
 - **FluxCD Integration**: Seamlessly works with existing FluxCD HelmRelease resources
 - **Namespace Flexibility**: Supports cross-namespace ConfigMap to HelmRelease references
 - **Configurable Concurrency**: Adjustable reconciliation performance settings
+
+### Autodiscovery
+
+The FluxCD Trigger Operator implements **autodiscovery** by scanning all HelmReleases in the cluster and automatically labeling those that use the `valuesFrom` feature. This ensures that HelmReleases relying on external ConfigMaps or Secrets for their values are dynamically included in the operator's reconciliation workflow.
+
+#### How Autodiscovery Works:
+1. **HelmRelease Scanning**: The operator scans all HelmReleases in the cluster.
+2. **`valuesFrom` Detection**: It checks if the HelmRelease configuration includes the `valuesFrom` field, which indicates dependency on external resources like ConfigMaps or Secrets.
+3. **Automatic Labeling**: For HelmReleases using `valuesFrom`, the operator adds the following labels:
+   - `"uburro.github.com/fluxcd-trigger-operator": "true"`: Marks the HelmRelease as managed by the operator.
+   - `"uburro.github.com/helmreleases-namespace": "<namespace>"`: Specifies the namespace of the HelmRelease.
+   - `"uburro.github.com/helmreleases-name": "<name>"`: Specifies the name of the HelmRelease.
+
+4. **Continuous Monitoring**: The operator continuously monitors the cluster for changes to HelmReleases and updates labels dynamically as needed.
 
 ## Prerequisites
 

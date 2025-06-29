@@ -21,8 +21,8 @@ import (
 
 const (
 	LabelReconcilerNameSourceKey = "uburro.github.com/fluxcd-trigger-operator"
-	HRAnnotation                 = "uburro.github.com/helmreleases-name"
-	NSAnnotation                 = "uburro.github.com/helmreleases-namespace"
+	HRNameAnnotation             = "uburro.github.com/helmreleases-name"
+	HRNSAnnotation               = "uburro.github.com/helmreleases-namespace"
 	HashAnnotation               = "uburro.github.com/config-digest"
 	DefaultFluxcdNamespace       = "flux-system"
 )
@@ -130,8 +130,8 @@ func (r *BaseReconciler) ReconcileResource(
 
 func (r *BaseReconciler) ExtractFromAnnotations(resource ResourceMetadata) (string, string, string) {
 	annotations := resource.GetAnnotations()
-	hrName := annotations[HRAnnotation]
-	hrNamespace := annotations[NSAnnotation]
+	hrName := annotations[HRNameAnnotation]
+	hrNamespace := annotations[HRNSAnnotation]
 	if hrNamespace == "" {
 		hrNamespace = DefaultFluxcdNamespace
 	}
