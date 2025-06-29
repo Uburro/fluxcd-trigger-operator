@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -36,8 +37,9 @@ func NewConfigMapReconciler(client client.Client, scheme *runtime.Scheme) *Confi
 // +kubebuilder:rbac:groups=helm.toolkit.fluxcd.io,resources=helmreleases,verbs=get;list;watch;patch
 
 func (r *ConfigMapReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	fmt.Println("Reconciling ConfigMap:", req.NamespacedName)
 	configMap := &corev1.ConfigMap{}
-	return r.ReconcileResource(ctx, req, configMap, "ConfigMap")
+	return r.ReconcileResource(ctx, req, configMap)
 }
 
 func (r *ConfigMapReconciler) SetupWithManager(

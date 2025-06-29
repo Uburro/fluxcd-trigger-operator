@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	LabelReconcilerNameSourceKey = "github.com/uburro/fluxcd-trigger-operator"
+	LabelReconcilerNameSourceKey = "uburro.github.com/fluxcd-trigger-operator"
 	HRAnnotation                 = "uburro.github.com/helmreleases-name"
 	NSAnnotation                 = "uburro.github.com/helmreleases-namespace"
 	HashAnnotation               = "uburro.github.com/config-digest"
@@ -70,9 +70,9 @@ func (r *BaseReconciler) ReconcileResource(
 	ctx context.Context,
 	req ctrl.Request,
 	resource client.Object,
-	resourceType string,
 ) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
+	resourceType := fmt.Sprintf("%T", resource)
 	logger.Info(fmt.Sprintf("reconciling %s", resourceType), "name", req.Name, "namespace", req.Namespace)
 
 	if err := r.Get(ctx, req.NamespacedName, resource); err != nil {
@@ -100,7 +100,7 @@ func (r *BaseReconciler) ReconcileResource(
 		return ctrl.Result{}, nil
 	}
 
-	newDigest := r.getNewDigest(resource, resourceType)
+	newDigest := r.getNewDigest(resource)
 
 	logger.V(1).Info("old digest", "digest", oldDigest)
 	logger.V(1).Info("new digest", "digest", newDigest)
@@ -152,12 +152,12 @@ func (r *BaseReconciler) IsDeployed(hr *helmv2.HelmRelease) bool {
 	return len(hr.Status.History) > 0 && hr.Status.History[0].Status == "deployed"
 }
 
-func (r *BaseReconciler) getNewDigest(resource client.Object, resourceType string) string {
-	switch resourceType {
-	case "Secret":
-		return getDataHashSecret(resource.(*corev1.Secret).Data)
-	case "ConfigMap":
-		return getDataHashCM(resource.(*corev1.ConfigMap).Data)
+func (r *BaseReconciler) getNewDigest(resource client.Object) string {
+	switch obj := resource.(type) {
+	case *corev1.Secret:
+		return getDataHashSecret(obj.Data)
+	case *corev1.ConfigMap:
+		return getDataHashCM(obj.Data)
 	default:
 		return ""
 	}

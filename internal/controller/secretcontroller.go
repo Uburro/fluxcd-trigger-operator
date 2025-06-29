@@ -37,7 +37,7 @@ func NewSecretReconciler(client client.Client, scheme *runtime.Scheme) *SecretRe
 
 func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	secret := &corev1.Secret{}
-	return r.ReconcileResource(ctx, req, secret, "Secret")
+	return r.ReconcileResource(ctx, req, secret)
 }
 
 func (r *SecretReconciler) SetupWithManager(
